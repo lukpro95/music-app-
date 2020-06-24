@@ -1,0 +1,43 @@
+#menu {
+    border-radius: 0.15rem;
+    border: 1px solid black;
+    background-color: rgb(8, 8, 8);
+    position: relative;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    min-width: 200px;
+    max-width: 200px;
+    height: fit-content;
+    max-height: 80%;
+}
+
+#menu #category1, #menu #category2 {
+    color: white;
+    transition: all 1s ease-out;
+}
+
+#menu #category1:hover, #menu #category2:hover {
+    color: red;
+}
+
+#menu .btn-menu {
+    background-color: transparent;
+    border: none;
+    color: #666;
+    transition: color 1s ease-in;
+}
+
+#menu .btn-menu:hover {
+    color: red;
+}
+
+#menu a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.4s ease-in;
+}
+
+#menu a:hover, a:hover {
+    color: rgb(194, 11, 11);
+    text-decoration: none;
+}

@@ -1,0 +1,60 @@
+body {
+    min-width: 1200px;
+    background-color: rgb(29, 27, 27);
+    margin: 0;
+    padding: 0;
+    color: white;
+    box-sizing: border-box;
+    line-height: 1.5;
+    font-family: "Courier New", Courier, monospace;
+}
+
+::placeholder {
+    color: rgb(68, 68, 68);
+}
+
+input, button {
+    border-radius: 0.15rem;
+    border: 1px solid rgb(112, 111, 111);
+    outline: none !important;
+}
+
+.hide {
+    display: none !important;
+    width: 0 !important;
+}
+
+.item {
+    border: 1px solid black;
+    border-radius: 0.15rem;
+    background-color: rgb(8, 8, 8);
+    height: max-content;
+    width: 100%;
+}
+
+hr {
+    border-width: 2px;
+    box-shadow: 0px 1px 15px rgb(131, 5, 5);
+}
+
+a {
+    color: white;
+}
+
+.info {
+      width: 50%;
+      background-color: rgb(206, 168, 206);
+      padding: 0.25rem 0.45rem;
+      font-size: 20px;
+}
+
+.more {
+    border-color: rgb(255, 199, 199);
+    background-color: rgb(255, 209, 209);
+}
+
+#main .btn {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    font-size: 1.25rem;
+}

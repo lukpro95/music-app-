@@ -1,0 +1,51 @@
+table {
+    /* cellspacing */
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: 18px;
+    width: 100%;
+}
+
+th {
+    color: rgb(192, 43, 43);
+    font-size: 20px;
+    /* background-color: rgb(194, 70, 70); */
+}
+
+.notfirst:hover {
+    background-color: rgb(31, 29, 29);
+    cursor: pointer;
+}
+
+th, td {
+    /* cellpadding */
+    padding: 0.25rem 0.45rem;
+    border-bottom: 1px solid rgb(255, 255, 255, 15%);
+    text-align: center;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+}
+
+th:hover, td:hover {
+    overflow: visible !important;
+    white-space: normal !important;
+    word-wrap: break-word;
+}
+
+thead tr {
+    text-align: center;
+}
+
+table input {
+    background-color: rgb(206, 168, 206);
+    font-size: 16px;
+    width: 80%;
+    padding: 0.25rem 0.45rem;
+    height: 24px;
+}
+
+table span:hover {
+    color: red;
+}
