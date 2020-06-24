@@ -13,6 +13,7 @@ in creating web apps with use of Node.JS + Express, MongoDB/MySQL and React.JS.
 I hope this application is showing at least a decent practices in coding.
 
 While the code is here to be displayed, you can also go and visit my application at:
+
 Client-side https://music-store-client-practice.herokuapp.com/home <----- Visit
 
 Server-side (API): https://music-store-client-server.herokuapp.com/home
