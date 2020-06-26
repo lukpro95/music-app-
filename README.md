@@ -16,4 +16,4 @@ While the code is here to be displayed, you can also go and visit my application
 
 Client-side: https://musicpedia-client-practice.herokuapp.com/ <----- Visit
 
-Server-side (API): https://music-store-server-practice.herokuapp.com/api/home
+Server-side (API): https://musicpedia-server-practice.herokuapp.com/api/home
