@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: `https://music-store-server-practice.herokuapp.com/api`,
+    baseURL: `https://musicpedia-server-practice.herokuapp.com/api`,
 })
 
 // Band related
