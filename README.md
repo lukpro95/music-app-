@@ -14,6 +14,6 @@ I hope this application is showing at least a decent practices in coding.
 
 While the code is here to be displayed, you can also go and visit my application at:
 
-Client-side: https://music-store-client-practice.herokuapp.com/home <----- Visit
+Client-side: https://musicpedia-client-practice.herokuapp.com/ <----- Visit
 
 Server-side (API): https://music-store-server-practice.herokuapp.com/api/home
