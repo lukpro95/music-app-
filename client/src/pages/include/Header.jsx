@@ -3,6 +3,32 @@ import '../../styles/header.css'
 import api from '../../api';
 import Cookies from 'js-cookie'
 import {Link} from 'react-router-dom'
+import {Pop, ToggleArrow, Logger} from '../../components'
+import styled from 'styled-components'
+
+const Container = styled.div.attrs({
+    className: 'd-flex fluid-container my-3', 
+    id: 'header-container'
+})``
+
+const Wrapper = styled.div.attrs({
+    className: 'd-flex p-0 shadow', 
+    id: 'header'
+})``
+
+const Banner = styled.div.attrs({
+    className: 'd-flex px-3 shadow justify-content-right',
+    id: 'banner'
+})``
+
+const LogWrapper = styled.div.attrs({
+    className: 'd-flex col-12 justify-content-between mx-0'
+})``
+
+const HomeTitle = styled.div.attrs({
+    className: 'd-flex w-50 py-2 px-1 title',
+    id: 'title'
+})``
 
 class Header extends Component {
 
@@ -10,72 +36,66 @@ class Header extends Component {
         super(props)
 
         this.state = {
-            wrapped: 1,
+            active: false,
             user_name: '',
             user_password: '',
-            loggedIn: false
+            loggedIn: false,
+            classAttr: 'hide',
+            error: '',
+            lastTracks: []
         }
 
-        this.formRef = createRef()
-        this.buttonRef = createRef()
+        this.popTimeout = null
+        this.focusRef = createRef()
     }
 
-    createIcon = (direction) => {
-        let icon = document.createElement("i")
-        icon.classList.add("fa", `fa-angle-double-${direction}`, "mt-1")
-        return icon
+    onChange = (e) => {
+        this.setState({[e.target.name]: e.target.value, error: ''})
     }
 
-    hidePanel = (e) => {
-        let form = this.formRef.current
-        let button = this.buttonRef.current
-
-        if(this.state.wrapped === 1) {
-            button.innerHTML = ""
-            button.appendChild(this.createIcon("left"))
-            this.setState({wrapped: 0})
+    changeDirection = () => {
+        if(!this.state.active) { 
+            this.setState({active: true})
             setTimeout(() => {
-                form.classList.remove("hide")
-                if(!this.state.loggedIn) {
-                    form.children[0][0].focus()
-                }
+                this.setState({classAttr: ''})
             }, 600)
         } else {
-            button.innerHTML = ""
-            button.appendChild(this.createIcon("right"))
-            this.setState({wrapped: 1})
+            this.setState({active: false})
             setTimeout(() => {
-                form.classList.add("hide")
+                this.setState({classAttr: 'hide'})
             }, 150)
         }
     }
 
-    onChange = (e) => {
-        this.setState({[e.target.name]: e.target.value})
+    showError = (error) => {
+        this.setState({error: error})
+        clearTimeout(this.popTimeout)
+        this.popTimeout = setTimeout(() => {
+            this.setState({error: ""})
+        }, 5000)
     }
 
     logIn = async (e) => {
         e.preventDefault()
-
         const {user_name, user_password} = this.state
         await api.logIn({user_name, user_password})
         .then((response) => {
             if(response.data.message.includes("Invalid")) {
-                alert("Invalid username / password")
+                this.showError("Invalid username / password")
             } else {
                 Cookies.set(`loggedIn`, response.data.token)
                 this.setState({
-                    wrapped: 0,
+                    active: false,
+                    classAttr: 'hide',
                     user_name: '',
                     user_password: '',
                     loggedIn: true
                 })
-                this.props.loggedIn(true)
-                console.log("Logged In Successfully.")
+                this.props.logIn(true)
             }
         })
         .catch(() => {
-            alert("Invalid username / password")
+            this.showError("Invalid username / password")
         })
     }
 
@@ -84,59 +104,53 @@ class Header extends Component {
         await api.logOut({user})
         .then((response) => {
             this.setState({loggedIn: false})
-            this.props.loggedIn(false)
+            this.props.logIn(false)
             Cookies.set(`loggedIn`, response.data)
         })
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.popTimeout)
+    }
+
     componentDidMount = async () => {
-        var user = Cookies.get('loggedIn')
-        await api.checkIfLoggedIn({user})
-        .then((response) => {
-            if(response.data) {
-                this.setState({
-                    loggedIn: true
-                })
-                console.log("Logged In!")
-                this.props.loggedIn(true)
-            } else {
-                Cookies.remove('loggedIn')
-                console.log("Not logged in...")
-            }
+        this.setState({loggedIn: this.props.isLogged})
+        await api.getLastAddedTracks()
+        .then((res) => {
+            this.setState({lastTracks: res.data})
+        })
+        .catch(err => {
+            console.log("error")
         })
     }
 
     render() {
+        const {loggedIn, classAttr, user_name, user_password, error, active, lastTracks} = this.state
         return (
-            <div className="d-flex fluid-container my-3" id="header-container">
-                <div className="d-flex p-0 shadow" id="header" style={this.state.wrapped ? wrapped : (this.state.loggedIn ? unwrappedLogIn: unwrapped)}>
-                    <div className="row align-items-center mx-0 h-100 w-100">
-                        <div className="d-flex col-12 justify-content-between mx-0">
-                            <div className="d-flex w-50 py-2 title text-muted" id="title"><Link to="/home">MusicPedia</Link></div>
-                            {this.state.loggedIn ? 
-                            <div className="d-flex w-100 py-2 hide" ref={this.formRef} id="formArea">
-                                <button className="btn-log-in mx-1" onClick={this.logOut}>Log Out</button>
-                            </div>
-                            :
-                            <div className="d-flex w-100 py-2 hide" ref={this.formRef} id="formArea">
-                                <form onSubmit={this.logIn} className="d-flex mx-1" action="">
-                                    <input className="mx-1 w-100" type="text" name="user_name" value={this.state.user_name || ""} onChange={this.onChange} placeholder="Username"/>
-                                    <input className="mx-1 w-100" type="password" name="user_password" value={this.state.user_password || ""} onChange={this.onChange} placeholder="Password"/>
-                                    <button className="btn-log-in mx-1">Log In</button>
-                                </form>
-                            </div>
-                            }
-                            <div className="d-flex px-1 py-2"><button ref={this.buttonRef} onMouseDown={this.hidePanel} id="wrapper" value={0}><i className="fa fa-angle-double-right mt-1"></i></button></div>
-                        </div>
+            <Container>
+                <Wrapper style={active ? (loggedIn ? unwrappedLogIn : unwrapped) : wrapped}>
+                    <LogWrapper>
+                        <HomeTitle><Link to="/home">MusicPedia</Link></HomeTitle>
+                        <Logger 
+                            loggedIn={loggedIn} 
+                            classAttr={classAttr}
+                            user_name={user_name}
+                            user_password={user_password}
+                            focusRef={this.focusRef}
+                            logIn={this.logIn}
+                            logOut={this.logOut}
+                            onChange={this.onChange}
+                        />
+                        <ToggleArrow direction={active} changeDirection={this.changeDirection}/>
+                    </LogWrapper>
+                </Wrapper>
+                <Pop error={error}/>
+                <Banner>
+                    <div className="my-auto reversing go">Last tracks added... &nbsp; 
+                        {lastTracks.map(track => <span key={track._id} > <i className="fa fa-music red"></i> &nbsp; <Link to={`/track/${track._id}`}>{track.band_name}: {track.title}</Link> &nbsp;</span>)}
                     </div>
-                </div>
-
-                <div className="d-flex p-1 shadow" id="banner">
-                        <div className="d-flex col-12 justify-content-center text-center">
-                            
-                        </div>
-                </div>
-            </div>
+                </Banner>
+            </Container>
         )
     }
 }

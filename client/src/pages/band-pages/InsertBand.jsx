@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import api from '../../api'
-import {InfoPop, Input, Select, Main, Title} from '../../components'
+import {InfoPop, Input, Select, Main, Title, LoadingComponent, Form} from '../../components'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'shadow item py-3'
+})``
 
 class InsertBand extends Component {
 
@@ -17,7 +22,8 @@ class InsertBand extends Component {
             errors: [],
             success: [],
             
-            isLoading: false,
+            isLoading: true,
+            isProcessing: false,
             submitting: false,
         }
 
@@ -51,29 +57,31 @@ class InsertBand extends Component {
     }
 
     switchPop = () => {
-        console.log(this.state.isLoading)
-        this.state.isLoading ? this.setState({isLoading: false}) : this.setState({isLoading: true})
+        this.state.isProcessing ? this.setState({isProcessing: false}) : this.setState({isProcessing: true})
     }
 
     onSubmit = async (e) => {
-        e.preventDefault()
 
-        this.setState({submitting: true, isLoading: true})
+        this.setState({submitting: true, isProcessing: true})
 
         await this.validate()
         .then(async () => {
             api.insertBand(this.state)
-            .then(() => {
-                this.setState({success: [...this.state.success, "Successfully added new Band!"]})
+            .then((res) => {
+                if(!res.data.includes("This band already exists in the database.")) {
+                    this.setState({success: [...this.state.success, "Successfully added new Band!"]})
 
-                this.setState({
-                    band_name: '',
-                    genre: '',
-                    country_origin: '',
-                    year_formed: '',
-                    record_label: '',
-                    active_status: '',
-                })
+                    this.setState({
+                        band_name: '',
+                        genre: '',
+                        country_origin: '',
+                        year_formed: '',
+                        record_label: '',
+                        active_status: '',
+                    })
+                } else {
+                    this.setState({errors: [...this.state.errors, "This band already exists in the database."]})
+                }
             })
             .catch((err) => {
                 this.setState({errors: [...this.state.errors, "There was a problem with our Database. Try again later."]})
@@ -84,44 +92,56 @@ class InsertBand extends Component {
         })
     }
 
+    componentDidMount = async () => {
+        setTimeout(() => {
+            this.setState({isLoading: false})
+        }, 150)
+    }
+
     render() {
+        const {isLoading, isProcessing, errors, success, submitting} = this.state
+        const {band_name, genre, country_origin, record_label, active_status, year_formed} = this.state
         return (
                 <Main>
-                    <div className="item py-3 w-100">
-                        <Title title={"Add a New Band"} />
-
-                        <div className="mx-5 my-2 w-100 d-flex justify-content-center">
-                            <form onSubmit={this.onSubmit} className="w-100" action="">
-
+                    {isLoading &&
+                        <LoadingComponent text="Loading page..."/>
+                    }
+                    {!isLoading && 
+                        <Content>
+                            <Title title={"Add a New Band"} />
+                            <Form onSubmit={this.onSubmit}>
                                 <Input  title={"Band"} mandatory name={"band_name"} type={"text"} 
-                                        value={this.state.band_name} onChange={this.onChange} focus />
+                                        value={band_name} onChange={this.onChange} focus />
 
                                 <Input  title={"Genre"} name={"genre"} type={"text"} 
-                                        value={this.state.genre} onChange={this.onChange} />
+                                        value={genre} onChange={this.onChange} />
 
                                 <Input  title={"Country / Region"} name={"country_origin"} type={"text"} mandatory
-                                        value={this.state.country_origin} onChange={this.onChange} />
+                                        value={country_origin} onChange={this.onChange} />
 
                                 <Input  title={"Year Formed"} name={"year_formed"} type={"number"} mandatory 
-                                        min={1000} max={new Date().getFullYear()+1} value={this.state.year_formed} onChange={this.onChange} />
+                                        min={1000} max={new Date().getFullYear()+1} value={year_formed} onChange={this.onChange} />
 
                                 <Input  title={"Record Label"} name={"record_label"} type={"text"} 
-                                        value={this.state.record_label} onChange={this.onChange} />
+                                        value={record_label} onChange={this.onChange} />
 
                                 <Select title={"Status"} name={"active_status"} type={"text"} array={data}
-                                        value={this.state.active_status} onChange={this.onChange} />
+                                        value={active_status} onChange={this.onChange} />
 
                                 <div className="d-flex mx-2 my-4 w-50 mx-auto">
                                     <button className="w-100">Submit</button>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                    {this.state.isLoading   ? <InfoPop 
-                                                errors={this.state.errors} success={this.state.success} 
-                                                submitting={this.state.submitting} switch={this.switchPop}/> 
-                                            : 
-                                            <span></span>}
+                            </Form>
+                        </Content>
+                    }
+                    {isProcessing ? 
+                        <InfoPop 
+                            errors={errors} success={success} 
+                            submitting={submitting} switch={this.switchPop}
+                        /> 
+                        : 
+                        <></>
+                    }
                 </Main>
         )
     }

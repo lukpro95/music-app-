@@ -1,6 +1,26 @@
 import React, {Component} from 'react';
-import MenuItem from '../../components/menu-components/MenuItem'
+import {MenuItem} from '../../components/'
 import '../../styles/menu.css'
+import styled from 'styled-components'
+
+const Container = styled.div.attrs({
+    className: 'container-fluid shadow', 
+    id: 'menu'
+})``
+
+const Category = styled.div.attrs({
+    className: 'category'
+})``
+
+const Title = styled.div.attrs({
+    className: 'd-flex w-100 py-2 title'
+})``
+
+const SubTitle = styled.div.attrs({
+    className: 'w-100 py-2 title text-muted'
+})``
+
+const Line = styled.hr``
 
 class Menu extends Component {
 
@@ -18,12 +38,11 @@ class Menu extends Component {
 
     render() {
         return (
-            <div className="container-fluid shadow" id="menu">
-                <div className="row align-items-center mx-0 w-100">
-                    <div className="col-12 mx-0 px-0" id="category1">
-                        <div className="d-flex w-100 py-2 title"><strong>View</strong></div>
-                        <hr style={borderStyle}/>
-                        <div className="w-100 py-2 title text-muted">
+            <Container>
+                    <Category>
+                        <Title>View</Title>
+                        <Line />
+                        <SubTitle>
                                 {
                                     this.state.menus.map(menu => {
                                         if(menu.category === "View") {
@@ -34,12 +53,12 @@ class Menu extends Component {
                                         } else {return null}
                                     })
                                 }
-                        </div>
-                    </div>
-                    <div className="col-12 mx-0 px-0" id="category2">
-                        <div className="d-flex w-100 py-2 title"><strong>Add</strong></div>
-                        <hr style={borderStyle}/>
-                        <div className="w-100 py-2 title text-muted">
+                        </SubTitle>
+                    </Category>
+                    <Category>
+                        <Title>Add</Title>
+                        <Line />
+                        <SubTitle>
                             {
                                 this.state.menus.map(menu => {
                                     if(menu.category === "Add") {
@@ -52,17 +71,11 @@ class Menu extends Component {
                                     } else {return null}
                                 })
                             }
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </SubTitle>
+                    </Category>
+            </Container>
         )
     }
-}
-
-const borderStyle = {
-    borderColor: '#333',
-    margin: '0'
 }
 
 export default Menu;

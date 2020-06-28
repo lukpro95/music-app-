@@ -49,6 +49,7 @@
 
 #banner {
     border-radius: 0.15rem;
+    padding: 0rem 1rem;
     border: 1px solid black;
     background-color: rgb(8, 8, 8);
     font-size: 15px;
@@ -58,4 +59,80 @@
     margin-right: 5%;
     height: 45px;
     transition: width 1s;
+    overflow: hidden;
 }
+
+#banner .red {
+  color: rgb(211, 22, 22);
+}
+
+.reversing {
+  animation: slide 60s linear infinite;
+}
+
+@keyframes slide{
+  0% {
+    margin-left:120%;
+  }
+  100% {
+    margin-left: -240%;
+  }
+}
+
+.popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* The actual popup */
+  .popup .popuptext {
+    visibility: hidden;
+    width: max-content;
+    height: 45px;
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(175, 175, 175);
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 1;
+    top: 0%;
+    margin-top: -1px;
+    margin-left: 7px;
+  }
+  
+  /* Popup arrow */
+  .popup .popuptext::after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -6px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent rgb(175, 175, 175) transparent transparent;
+  }
+  
+  /* Toggle this class - hide and show the popup */
+  .popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+  }
+  
+  /* Add animation (fade in the popup) */
+  @-webkit-keyframes fadeIn {
+    from {opacity: 0;} 
+    to {opacity: 1;}
+  }
+  
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }

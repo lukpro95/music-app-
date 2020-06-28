@@ -5,8 +5,8 @@ class Main extends Component {
 
     render() {
         return (
-            <div className="container-fluid p-0" id="main">
-                <div className="row align-items-center justify-content-center mx-0 w-100 h-100">
+            <div className={`container-fluid p-0`} id="main">
+                <div className="row align-items-center mx-0 w-100 h-100">
                     {this.props.children}
                 </div>
             </div>

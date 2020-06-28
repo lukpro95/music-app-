@@ -7,7 +7,7 @@ class LoadingComponent extends React.Component {
             <div className="mt-2 col-12 d-flex justify-content-center">
                 <div>
                     <div className="w-100 p-3 item text-center preloader">
-                        <h4>Processing...</h4>
+                        <h4>{this.props.text}</h4>
                         <img src={Arrow} alt="" />
                     </div>
                 </div>

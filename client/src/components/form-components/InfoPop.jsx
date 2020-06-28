@@ -23,7 +23,6 @@ class InfoPop extends Component {
             this.setState({isLoading: true})
             this.loadingTimer = setTimeout(() => {
                 this.setState({isLoading: false})
-                console.log(this.props)
                 if(this.props.success.length) {
                     this.setState({messages: this.props.success})
                     this.boxRef.current.className = "pop-success"
@@ -34,7 +33,6 @@ class InfoPop extends Component {
                     }, 5000)
                 } else if (this.props.errors.length) {
                     this.setState({messages: this.props.errors})
-                    console.log(this.messages)
                     this.boxRef.current.className = "pop-error"
                     clearTimeout(this.timeout)
                     this.timeout = setTimeout(() => {
@@ -55,7 +53,7 @@ class InfoPop extends Component {
         return (
                 <div className="infoPop">
                     {this.state.isLoading ?
-                        <LoadingComponent />
+                        <LoadingComponent text={"Processing data..."}/>
                     :
                         <div ref={this.boxRef} className="pop-success hidePop">
                             {

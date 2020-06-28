@@ -11,13 +11,18 @@
     max-height: 80%;
 }
 
-#menu #category1, #menu #category2 {
+#menu .category {
     color: white;
-    transition: all 1s ease-out;
+    transition: color 0.8s ease-out;
 }
 
-#menu #category1:hover, #menu #category2:hover {
+#menu .category:hover {
     color: red;
+}
+
+hr {
+    border-color: rgb(33, 33, 33, 70%);
+    margin: 0;
 }
 
 #menu .btn-menu {

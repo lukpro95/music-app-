@@ -1,7 +1,16 @@
 import React, {Component} from 'react';
 import api from '../../api'
 import {Table} from '../../components'
-import {Main, Title} from '../../components'
+import {Main, Title, LoadingComponent} from '../../components'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'item py-3 w-100'
+})``
+
+const TableWrapper = styled.div.attrs({
+    className: 'd-flex justify-content-between py-4 px-5 mx-5'
+})``
 
 class BandsList extends Component {
 
@@ -9,27 +18,45 @@ class BandsList extends Component {
         super(props)
 
         this.state = {
-            bands: []
+            bands: [],
+            isLoading: true
         }
     }
 
-    componentDidMount = async () => {
-        await api.getBands()
-        .then((response) => {
-            this.setState({bands: response.data})
+    loadBands = () => {
+        return new Promise(async (resolve) => {
+            await api.getBands()
+            .then((response) => {
+                this.setState({bands: response.data})
+                resolve()
+            })
         })
-        .catch(err => console.log(err))
+    }
+
+    componentDidMount = async () => {
+        await this.loadBands()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
+        })
     }
 
     render() {
+        const {isLoading} = this.state
         return (
-            <Main title={"List of Bands"}>
-                <div className="item py-3 w-100">
-                    <Title title={"Record of Bands"} />
-                    <div className="d-flex justify-content-between py-4 px-5 mx-5">
-                        <Table category={"band"} columns={columns} data={this.state.bands} />
-                    </div>
-                </div>
+            <Main>
+                {isLoading &&
+                    <LoadingComponent text="Loading page..."/>
+                }
+                {!isLoading && 
+                    <Content>
+                        <Title title={"Record of Bands"} />
+                        <TableWrapper>
+                            <Table category={"band"} columns={columns} data={this.state.bands} />
+                        </TableWrapper>
+                    </Content>
+                }
             </Main>
         )
     }

@@ -1,18 +1,25 @@
 import React, {Component} from 'react';
 import '../../styles/footer.css'
+import styled from 'styled-components'
+
+const Line = styled.div.attrs({
+    className: 'line'
+})``
+
+const FooterWrapper = styled.div.attrs({
+    className: 'text-center w-100',
+    id: 'footer'
+})``
 
 class Footer extends Component {
+
     render() {
         return (
-            <div className="line">
-                <div className="container-fluid" id="footer">
-                    <div className="row align-items-center h-100">
-                        <div className=" d-flex justify-content-center mx-auto">
-                            <p>Copyright &copy; 2020 MP App</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Line>
+                <FooterWrapper>
+                    <p>Copyright &copy; 2020 MusicPedia App</p>
+                </FooterWrapper>
+            </Line>
         )
     }
 }

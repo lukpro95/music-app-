@@ -1,7 +1,11 @@
 import React, {Component} from 'react';
 import api from '../../api'
-import {InfoPop, Input, Select, CreateAlbum, CreateBand, TextArea, Main, Title} from '../../components'
-import {createRef} from 'react'
+import {InfoPop, Input, Select, CreateAlbum, CreateBand, TextArea, Main, Title, Form, LoadingComponent} from '../../components'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'item py-3 w-100'
+})``
 
 class InsertTrack extends Component {
 
@@ -14,14 +18,14 @@ class InsertTrack extends Component {
             link: '',
             lyrics: '',
 
-            bands: [],
+            bands: [{id: 0, name: "Create New Band..", value: 0}],
             creatingBand: false,
             band_name: '',
             band_id: '',
             year_formed: '',
             country_origin: '',
 
-            albums: [],
+            albums: [{id: 0, name: "Create New Album..", value: 0}],
             creatingAlbum: false,
             album_name: '',
             album_id: '',
@@ -29,13 +33,11 @@ class InsertTrack extends Component {
 
             errors: [],
             success: [],
-
-            isLoading: false,
+            
+            isLoading: true,
+            isProcessing: false,
             submitting: false,
         }
-
-        this.bandRef = createRef()
-        this.albumRef = createRef()
 
     }
 
@@ -87,38 +89,49 @@ class InsertTrack extends Component {
         this.checkIfCreate(e)
 
         if(e.target.name === "band_id"){
-            this.setState({albums: []})
+            this.setState({albums: [{id: 0, name: "Create New Album..", value: 0}]})
             this.loadAlbums(e.target.value)
         }
     }
 
     switchPop = () => {
-        console.log(this.state.isLoading)
-        this.state.isLoading ? this.setState({isLoading: false}) : this.setState({isLoading: true})
+        this.state.isProcessing ? this.setState({isProcessing: false}) : this.setState({isProcessing: true})
     }
 
     createBand = async () => {
         const {band_name, year_formed, country_origin} = this.state
         await api.insertBand({band_name, year_formed, country_origin})
-        .then(() => 
-            this.setState({success: [...this.state.success, "Successfully created new band."]})
-        )
+        .then((res) => {
+            if(res.data.includes("This band already exists in the database.")) {
+                this.setState({errors: [...this.state.errors, "This band already exists in the database."]})
+            } else {
+                this.setState({success: [...this.state.success, "Successfully created new band."]})
+            }
+        })
     }
 
     createAlbum = async () => {
         const {album_name, band_id, year_released, band_name, year_formed, country_origin} = this.state
         await api.insertAlbum({album_name, band_id, year_released, band_name, year_formed, country_origin})
-        .then(() => 
-            this.setState({success: [...this.state.success, "Successfully created new album."]})
-        )
+        .then((res) => {
+            if(res.data.includes("This album already exists in the database.")) {
+                this.setState({errors: [...this.state.errors, "This album already exists in the database."]})
+            } else {
+                this.setState({success: [...this.state.success, "Successfully created new album."]})
+            }
+        })
     }
 
     createTrack = async () => {
         const {title, duration, link, lyrics, band_id, album_id, album_name, band_name, year_formed, country_origin} = this.state
         await api.insertTrack({title, duration, link, lyrics, band_id, album_id, album_name, band_name, year_formed, country_origin})
-        .then(() => {
-            this.setState({success: [...this.state.success, "Successfully added new track! Thank you!"]})
-            this.reset()
+        .then((res) => {
+            if(!res.data.includes("This track already exists in the database.")){
+                this.setState({success: [...this.state.success, "Successfully added new track! Thank you."]})
+                this.reset()
+            } else {
+                this.setState({errors: [...this.state.errors, "This track already exists in the database."]})
+            }
         })
         .catch((err) => {
             this.setState({errors: [...this.state.errors, "There was a problem with our Database connection. Try again later."]})
@@ -126,9 +139,7 @@ class InsertTrack extends Component {
     }
 
     onSubmit = async (e) => {
-        e.preventDefault()
-
-        this.setState({submitting: true, isLoading: true})
+        this.setState({submitting: true, isProcessing: true})
 
         await this.validate()
         .then(async () => {
@@ -140,7 +151,10 @@ class InsertTrack extends Component {
             if(album_id === "0") {
                 this.createAlbum()
             }
-            this.createTrack()
+
+            if(!this.state.errors) {
+                await this.createTrack()
+            }
         })
         .catch(() => {
             this.setState({submitting: false})
@@ -164,56 +178,73 @@ class InsertTrack extends Component {
             creatingAlbum: false,
             album_name: '',
             year_released: '',
-
-            isLoading: false,
             submitting: false
         })
-        
-        this.bandRef.current.value = "DEFAULT"
-        this.albumRef.current.value = "DEFAULT"
     }
 
-    componentDidMount = async () => {
+    loadBands = async () => {
         await api.getBands()
         .then(response => {
-            this.setState({bands: response.data})
-        })
-        .catch(err => {
-            console.log(err)
+            this.setState({
+                bands: this.state.bands.concat(
+                    response.data.map(band => {
+                        return {
+                            id: band._id, 
+                            name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, 
+                            value: band._id
+                        }
+                    })
+                )
+            })
         })
     }
 
     loadAlbums = async (id) => {
         await api.getAlbumsByBand(id)
         .then(response => {
-            this.setState({albums: response.data[0].albums})
+            this.setState({
+                albums: this.state.albums.concat(
+                    response.data[0].albums.map(album => {
+                        return {id: album._id, name: album.album_name, value: album._id}
+                    })
+                )
+            })
         })
         .catch(err => {
             console.log(err)
         })
     }
     
+    loadData = () => {
+        return new Promise (async (resolve) => {
+            await this.loadBands()
+            resolve()
+        })
+    }
+
+    componentDidMount = () => {
+        this.loadData()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
+        })
+    }
+
     render() {
-        const array1 = [{id: 0, name: "Create New Band..", value: 0}]
-        const array2 = [{id: 0, name: "Create New Album..", value: 0}]
-
-        this.state.bands.map(band => {
-            return array1.push({id: band._id, name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, value: band._id})
-        })
-
-        this.state.albums.map(album => {
-            return array2.push({id: album._id, name: album.album_name, value: album._id})
-        })
-
+        const {isLoading, isProcessing, errors, success, submitting} = this.state
         return (
                 <Main>
-                    <div className="item py-3 w-100">
-                        <Title title={"Add a New Track"} />
-                        <div className="mx-5 my-2 w-100 d-flex justify-content-center">
-                            <form onSubmit={this.onSubmit} className="w-100" action="">
+                    {isLoading &&
+                        <LoadingComponent text={"Loading page..."} />
+                    }
+                    {!isLoading &&
+                        <Content>
+                            <Title title={"Add a New Track"} />
+                            <Form onSubmit={this.onSubmit}>
 
                                 <Select 
-                                        parentRef={this.bandRef} title={"Band"} mandatory name={"band_id"} type={"text"} array={array1}
+                                        parentRef={this.bandRef} title={"Band"} mandatory name={"band_id"} type={"text"} array={this.state.bands}
                                         value={this.state.band_id} onChange={this.onChange} />
 
                                 <CreateBand 
@@ -221,7 +252,7 @@ class InsertTrack extends Component {
                                         countryOrigin={this.state.country_origin} yearFormed={this.state.year_formed} />
 
                                 <Select 
-                                        parentRef={this.albumRef} title={"Album"} mandatory name={"album_id"} type={"text"} array={array2}
+                                        parentRef={this.albumRef} title={"Album"} mandatory name={"album_id"} type={"text"} array={this.state.albums}
                                         value={this.state.album_id} onChange={this.onChange} />
 
                                 <CreateAlbum    
@@ -248,15 +279,17 @@ class InsertTrack extends Component {
                                     <button type="submit" className="w-100">Submit</button>
                                 </div>
 
-                            </form>
-                        </div>
-                    </div>
-
-                    {this.state.isLoading   ? <InfoPop 
-                                                errors={this.state.errors} success={this.state.success} 
-                                                submitting={this.state.submitting} switch={this.switchPop}/> 
-                                            : 
-                                            <span></span>}
+                            </Form>
+                        </Content>
+                    }
+                    {isProcessing ? 
+                        <InfoPop 
+                            errors={errors} success={success} 
+                            submitting={submitting} switch={this.switchPop}
+                        /> 
+                        : 
+                        <></>
+                    }
                 </Main>
         )
     }

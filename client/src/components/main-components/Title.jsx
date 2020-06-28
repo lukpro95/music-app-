@@ -13,7 +13,7 @@ class Title extends Component {
 }
 
 const borderStyle = {
-    borderColor: '#333',
+    borderColor: 'rgb(33, 33, 33, 70%)',
     margin: '0',
 }
 

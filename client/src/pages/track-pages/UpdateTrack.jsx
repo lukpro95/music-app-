@@ -1,7 +1,16 @@
 import React, {Component} from 'react';
 import api from '../../api'
-import {CreateBand, CreateAlbum, InfoPop, Select, Input, TextArea, Main, Title} from '../../components'
+import {CreateBand, CreateAlbum, InfoPop, Select, Input, TextArea, Main, Title, Form, LoadingComponent} from '../../components'
 import { createRef } from 'react';
+import styled from 'styled-components'
+
+const Wrapper = styled.div.attrs({
+    className: 'w-100'
+})``
+
+const Content = styled.div.attrs({
+    className: 'item py-3 w-100'
+})``
 
 class UpdateTrack extends Component {
 
@@ -14,14 +23,14 @@ class UpdateTrack extends Component {
             link: '',
             lyrics: '',
 
-            bands: [],
+            bands: [{id: 0, name: "Create New Band..", value: 0}],
             creatingBand: false,
             band_name: '',
             band_id: '',
             year_formed: '',
             country_origin: '',
 
-            albums: [],
+            albums: [{id: 0, name: "Create New Album..", value: 0}],
             creatingAlbum: false,
             album_name: '',
             album_id: '',
@@ -30,7 +39,8 @@ class UpdateTrack extends Component {
             errors: [],
             success: [],
             
-            isLoading: false,
+            isLoading: true,
+            isProcessing: false,
             submitting: false,
         }
 
@@ -114,7 +124,7 @@ class UpdateTrack extends Component {
         await api.updateTrack(this.props.match.params.id, {title, duration, link, lyrics, band_id, album_id, album_name, band_name, year_formed, country_origin})
         .then(() => {
             this.setState({success: [...this.state.success, "Successfully added new track! Thank you!"]})
-            window.location.href = `/track/${this.props.match.params.id}`
+            this.returnToTrack()
             
         })
         .catch((err) => {
@@ -123,14 +133,11 @@ class UpdateTrack extends Component {
     }
 
     switchPop = () => {
-        console.log(this.state.isLoading)
-        this.state.isLoading ? this.setState({isLoading: false}) : this.setState({isLoading: true})
+        this.state.isProcessing ? this.setState({isProcessing: false}) : this.setState({isProcessing: true})
     }
 
-    onSubmit = async (e) => {
-        e.preventDefault()
-
-        this.setState({submitting: true, isLoading: true})
+    submitHandler = async (e) => {
+        this.setState({submitting: true, isProcessing: true})
 
         await this.validate()
         .then(async () => {
@@ -167,7 +174,7 @@ class UpdateTrack extends Component {
             album_name: '',
             year_released: '',
 
-            isLoading: false,
+            isProcessing: false,
             submitting: false
         })
         
@@ -179,7 +186,7 @@ class UpdateTrack extends Component {
         window.location.href = `/track/${this.props.match.params.id}`
     }
 
-    componentDidMount = async () => {
+    loadTrack = async () => {
         await api.getTrackById(this.props.match.params.id)
         .then(response => {
             const {band_id, album_id, title, duration, link, lyrics} = response.data[0]
@@ -195,94 +202,122 @@ class UpdateTrack extends Component {
         .catch(err => {
             console.log(err)
         })
+    }
 
+    loadBands = async () => {
         await api.getBands()
         .then(response => {
-            this.setState({bands: response.data})
+            this.setState({
+                bands: this.state.bands.concat(
+                    response.data.map(band => {
+                        return {
+                            id: band._id, 
+                            name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, 
+                            value: band._id
+                        }
+                    })
+                )
+            })
         })
-
-        this.loadAlbums(this.state.band_id)
     }
 
     loadAlbums = async (id) => {
         await api.getAlbumsByBand(id)
         .then(response => {
-            this.setState({albums: response.data[0].albums})
+            this.setState({
+                albums: this.state.albums.concat(
+                    response.data[0].albums.map(album => {
+                        return {id: album._id, name: album.album_name, value: album._id}
+                    })
+                )
+            })
         })
         .catch(err => {
             console.log(err)
         })
     }
+
+    loadData = () => {
+        return new Promise(async(resolve) => {
+            await this.loadTrack()
+            await this.loadBands()
+            await this.loadAlbums(this.state.band_id)
+            resolve()
+        })
+    }
+
+    componentDidMount = async () => {
+        await this.loadData()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
+        })
+    }
     
     render() {
-
-        const array1 = [{id: 0, name: "Create New Band..", value: 0}]
-        const array2 = [{id: 0, name: "Create New Album..", value: 0}]
-
-        this.state.bands.map(band => {
-            return array1.push({id: band._id, name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, value: band._id})
-        })
-
-        this.state.albums.map(album => {
-            return array2.push({id: album._id, name: album.album_name, value: album._id})
-        })
-        
+        const {isLoading} = this.state
         return (
-            
-                <Main>
-                    <div className="w-100">
-                        <div className="item py-3">
+            <Main>
+                {isLoading &&
+                    <LoadingComponent text={"Loading page..."} />
+                }
+                {!isLoading &&
+                    <Wrapper>
+                        <Content>
                             <Title title={"Update Track"} />
-                            <div className="d-flex justify-content-between py-4 px-5 mx-5">
-                                <form onSubmit={this.onSubmit} className="w-100" action="">
-                                    <Select 
-                                            parentRef={this.bandRef} title={"Band"} mandatory name={"band_id"} type={"text"} array={array1}
-                                            value={this.state.band_id} onChange={this.onChange} />
+                            <Form onSubmit={this.submitHandler}>
+                                <Select 
+                                        title={"Band"} mandatory name={"band_id"} type={"text"} array={this.state.bands}
+                                        value={this.state.band_id} onChange={this.onChange} />
 
-                                    <CreateBand 
-                                            creatingBand={this.state.creatingBand} onChange={this.onChange} bandName={this.state.band_name} 
-                                            countryOrigin={this.state.country_origin} yearFormed={this.state.year_formed} />
+                                <CreateBand 
+                                        creatingBand={this.state.creatingBand} onChange={this.onChange} bandName={this.state.band_name} 
+                                        countryOrigin={this.state.country_origin} yearFormed={this.state.year_formed} />
 
-                                    <Select 
-                                            parentRef={this.albumRef} title={"Album"} mandatory name={"album_id"} type={"text"} array={array2}
-                                            value={this.state.album_id} onChange={this.onChange} />
+                                <Select 
+                                        parentRef={this.albumRef} title={"Album"} mandatory name={"album_id"} type={"text"} array={this.state.albums}
+                                        value={this.state.album_id} onChange={this.onChange} />
 
-                                    <CreateAlbum    
-                                            creatingAlbum={this.state.creatingAlbum} onChange={this.onChange} 
-                                            albumName={this.state.album_name} yearReleased={this.state.year_released} />
+                                <CreateAlbum    
+                                        creatingAlbum={this.state.creatingAlbum} onChange={this.onChange} 
+                                        albumName={this.state.album_name} yearReleased={this.state.year_released} />
 
-                                    <Input 
-                                            mandatory title={"Title"} name={"title"} type={"text"} value={this.state.title || ""}
-                                            onChange={this.onChange}/>
+                                <Input 
+                                        mandatory title={"Title"} name={"title"} type={"text"} value={this.state.title || ""}
+                                        onChange={this.onChange}/>
 
-                                    <Input 
-                                            title={"Duration"} name={"duration"} type={"time"} value={this.state.duration || ""}
-                                            onChange={this.onChange}/>
-                                    
-                                    <Input 
-                                            title={"Link"} name={"link"} type={"text"} value={this.state.link || ""}
-                                            onChange={this.onChange}/>
+                                <Input 
+                                        title={"Duration"} name={"duration"} type={"time"} value={this.state.duration || ""}
+                                        onChange={this.onChange}/>
+                                
+                                <Input 
+                                        title={"Link"} name={"link"} type={"text"} value={this.state.link || ""}
+                                        onChange={this.onChange}/>
 
-                                    <TextArea 
-                                            title={"Lyrics"} name={"lyrics"} value={this.state.lyrics || ""}
-                                            onChange={this.onChange}/>
+                                <TextArea 
+                                        title={"Lyrics"} name={"lyrics"} value={this.state.lyrics || ""}
+                                        onChange={this.onChange}/>
 
-                                    <div className="d-flex mx-2 my-4 w-50 mx-auto">
-                                        <button type="submit" className="w-100">Update</button>
-                                    </div>
-                                    <div className="d-flex mx-2 my-4 w-50 mx-auto">
-                                        <button type="reset" onClick={this.returnToTrack} className="w-100 cancel">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {this.state.isLoading   ? <InfoPop 
-                                                errors={this.state.errors} success={this.state.success} 
-                                                submitting={this.state.submitting} switch={this.switchPop}/> 
-                                            : 
-                                            <span></span>}
-                </Main>
+                                <div className="d-flex mx-2 my-4 w-50 mx-auto">
+                                    <button type="submit" className="w-100">Update</button>
+                                </div>
+                                <div className="d-flex mx-2 my-4 w-50 mx-auto">
+                                    <button type="reset" onClick={this.returnToTrack} className="w-100 cancel">Cancel</button>
+                                </div>
+                            </Form>
+                        </Content>
+                        {this.state.isProcessing ? 
+                            <InfoPop 
+                                errors={this.state.errors} success={this.state.success} 
+                                submitting={this.state.submitting} switch={this.switchPop}
+                            /> 
+                            : 
+                            <span></span>
+                        }
+                    </Wrapper>
+                }
+            </Main>
         )
     }
 

@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
-import {Main, Title, Input, InfoPop} from '../components'
+import {Main, Title, Input, InfoPop, Form, LoadingComponent} from '../components'
 import api from '../api'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'w-100 item py-3'
+})``
 
 class Register extends Component {
 
@@ -14,7 +19,8 @@ class Register extends Component {
             user_email: '',
             errors: [],
             success: [],
-            isLoading: false,
+            isLoading: true,
+            isProcessing: false,
             submitting: false,
         }
     }
@@ -26,7 +32,7 @@ class Register extends Component {
                 if(this.state.user_name.length < 4) {errors.push("Username has to be at least 4 characters long.")}
                 const {user_name} = this.state
                 await api.doesUserExist({user_name})
-                .then((response) => {console.log(response.data); if(response.data === true) {errors.push("This username is already taken.")}})
+                .then((response) => {if(response.data === true) {errors.push("This username is already taken.")}})
             }
             if(!this.state.user_password) {errors.push("You must provide a Password.")} else {
                 if(this.state.user_password.length < 8) {errors.push("Password has to be at least 8 characters long.")}
@@ -55,14 +61,11 @@ class Register extends Component {
     }
     
     switchPop = () => {
-        console.log(this.state.isLoading)
-        this.state.isLoading ? this.setState({isLoading: false}) : this.setState({isLoading: true})
+        this.state.isProcessing ? this.setState({isProcessing: false}) : this.setState({isProcessing: true})
     }
 
     onSubmit = async (e) => {
-        e.preventDefault()
-
-        this.setState({submitting: true, isLoading: true})
+        this.setState({submitting: true, isProcessing: true})
 
         await this.validate()
         .then(async () => {
@@ -92,44 +95,53 @@ class Register extends Component {
         })
     }
 
+    componentDidMount = () => {
+        setTimeout(() => {
+            this.setState({isLoading: false})
+        }, 150)
+    }
+
     render() {
+        const {isLoading, isProcessing, submitting, errors, success} = this.state
+        const {user_name, user_password, re_user_password, user_email} = this.state
         return (
             <Main>
-                <div className="w-100">
-                    <div className="item py-3">
+                {isLoading &&
+                    <LoadingComponent text="Loading page..."/>
+                }
+                {!isLoading &&
+                    <Content>
                         <Title title={"Registration"} />
-                        <div className="mx-5 my-2 w-100 d-flex justify-content-center">
-                            <form onSubmit={this.onSubmit} className="w-100" action="">
-                                <Input 
-                                        mandatory title={"Username"} name={"user_name"} type={"text"} value={this.state.user_name || ""}
-                                        onChange={this.onChange} focus/>
+                        <Form onSubmit={this.onSubmit}>
+                            <Input 
+                                    mandatory title={"Username"} name={"user_name"} type={"text"} value={user_name || ""}
+                                    onChange={this.onChange} focus/>
 
-                                <Input 
-                                        mandatory title={"Password"} name={"user_password"} type={"password"} value={this.state.user_password || ""}
-                                        onChange={this.onChange}/>
+                            <Input 
+                                    mandatory title={"Password"} name={"user_password"} type={"password"} value={user_password || ""}
+                                    onChange={this.onChange}/>
 
-                                <Input 
-                                        mandatory title={"Re-enter Password"} name={"re_user_password"} type={"password"} value={this.state.re_user_password || ""}
-                                        onChange={this.onChange}/>
-                                
-                                <Input 
-                                        mandatory title={"Email"} name={"user_email"} type={"email"} value={this.state.user_email || ""}
-                                        onChange={this.onChange}/>
+                            <Input 
+                                    mandatory title={"Re-enter Password"} name={"re_user_password"} type={"password"} value={re_user_password || ""}
+                                    onChange={this.onChange}/>
+                            
+                            <Input 
+                                    mandatory title={"Email"} name={"user_email"} type={"email"} value={user_email || ""}
+                                    onChange={this.onChange}/>
 
-                                <div className="d-flex mx-2 my-4 w-50 mx-auto">
-                                    <button type="submit" className="w-100">Register Now</button>
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                            <div className="d-flex mx-2 my-4 w-50 mx-auto">
+                                <button type="submit" className="w-100">Register Now</button>
+                            </div>
+                        </Form>
+                    </Content>
+                }
                 
-                {this.state.isLoading   ? <InfoPop 
-                                                errors={this.state.errors} success={this.state.success} 
-                                                submitting={this.state.submitting} switch={this.switchPop}/> 
-                                            : 
-                                            <span></span>}
+                {isProcessing ? 
+                    <InfoPop 
+                        errors={errors} success={success} 
+                        submitting={submitting} switch={this.switchPop}/> 
+                    : 
+                    <></>}
             </Main>
 
         )

@@ -25,6 +25,7 @@ export const getTracksByAlbumId = (id) => api.get(`/album/${id}/tracks`)
 export const insertTrack = (data) => api.post('/track', data)
 export const updateTrack = (id, data) => api.put(`/track/${id}`, data)
 export const deleteTrack = (id) => api.delete(`/track/${id}`)
+export const getLastAddedTracks = () => api.get('/tracks/last-added')
 
 // User related
 export const register = (data) => api.post('/register', data)
@@ -41,32 +42,37 @@ export const removeFromPlaylist = (id, cookie) => api.delete(`/playlist/${id}`, 
 export const isOnPlaylist = (id, cookie) => api.post('/isOnPlaylist/', {track_id: id, token: cookie})
 
 const apis = {
+    getBands,
+    getBandById,
+    insertBand,
+    updateBand,
+    deleteBand,
+
+    getAlbumById,
+    getAlbumsByBand,
+    insertAlbum,
+    updateAlbum,
+    deleteAlbum,
+
+    getTracks,
+    getTrackById,
+    getTracksByAlbumId,
+    insertTrack,
+    updateTrack,
+    deleteTrack,
+    getLastAddedTracks,
+
     register,
     logIn,
     logOut,
     checkIfLoggedIn,
     doesUserExist,
     doesEmailExist,
+
     addToPlaylist,
-    removeFromPlaylist,
     displayPlaylist,
-    isOnPlaylist,
-    getBands,
-    getAlbumsByBand,
-    getAlbumById,
-    deleteAlbum,
-    getTracksByAlbumId,
-    getTracks,
-    deleteBand,
-    updateBand,
-    updateAlbum,
-    insertBand,
-    insertAlbum,
-    insertTrack,
-    getTrackById,
-    deleteTrack,
-    updateTrack,
-    getBandById
+    removeFromPlaylist,
+    isOnPlaylist
 }
 
 export default apis

@@ -1,5 +1,10 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom'
+import styled from 'styled-components'
+
+const ItemWrapper = styled.div.attrs({
+    className: "mx-3 btn-menu"
+})``
 
 class MenuItem extends Component {
 
@@ -18,9 +23,9 @@ class MenuItem extends Component {
 
     render() {
         return (
-            <div className="mx-3 btn-menu">
+            <ItemWrapper>
                 <Link to={`/${this.state.value}`}>{this.state.name}</Link>
-            </div>
+            </ItemWrapper>
         )
     }
 }

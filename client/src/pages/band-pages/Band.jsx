@@ -1,7 +1,24 @@
 import React, {Component} from 'react';
 import api from '../../api'
-import {Table, Main, Title} from '../../components'
+import {Table, Main, Title, LoadingComponent} from '../../components'
 import {Link} from 'react-router-dom'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'item shadow py-3 w-100'
+})``
+
+const SubContent = styled.div.attrs({
+    className: 'd-flex py-4'
+})``
+
+const TwoColumns = styled.div.attrs({
+    className: 'p-5 item col-6'
+})``
+
+const TableWrapper = styled.div.attrs({
+    className: 'd-flex justify-content-between py-4 px-5 mx-5'
+})``
 
 class Delete extends Component {
 
@@ -42,11 +59,12 @@ class Band extends Component {
             year_formed: '',
             record_label: '',
             active_status: '',
-            albums: []
+            albums: [],
+            isLoading: true,
         }
     }
 
-    componentDidMount = async () => {
+    loadBand = async () => {
         await api.getBandById(this.props.match.params.id)
         .then((response) => {
             const {band_name, genre, country_origin, year_formed, record_label, active_status} = response.data
@@ -60,37 +78,62 @@ class Band extends Component {
                 active_status: active_status
             })
         })
+    }
 
+    loadAlbums = async () => {
         await api.getAlbumsByBand(this.props.match.params.id)
         .then(response => {
             this.setState({albums: response.data[0].albums})
         })
         .catch(err => {
-            console.log(err)
+            console.log("Something went wrong.")
+        })
+    }
+
+    initLoad = () => {
+        return new Promise(async (resolve) => {
+            await this.loadBand()
+            await this.loadAlbums()
+            resolve()
+        })
+    }
+
+    componentDidMount = async () => {
+        await this.initLoad()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
         })
     }
 
     render() {
+        const {isLoading, albums} = this.state
         return (
             <Main>
-                <div className="w-100">
-                    <div className="item py-3">
-                        <Title title={"Band Details"} />
-                        <div className="d-flex justify-content-between py-4 px-5 mx-5">
-                            <Table columns={bandColumns} data={[this.state]} />
-                        </div>
-                    </div>
-                    <div className="d-flex py-4">
-                        <div className="p-5 item mr-4 col-6">
-                            <h3 className="title mb-4 text-center">Albums</h3>
-                            <Table columns={albumColumns} data={this.state.albums} />
-                        </div>
-                        <div className="p-5 item col-6">
-                            <h3 className="title mb-4">Current Members</h3>
-                            <p className="text-muted"><em>Will be available in future updates</em></p>
-                        </div>
-                    </div>
-                </div>
+                {isLoading &&
+                    <LoadingComponent text="Loading page..."/>
+                }
+                {!isLoading &&
+                    <>
+                        <Content>
+                            <Title title={"Band Details"} />
+                            <TableWrapper>
+                                <Table columns={bandColumns} data={[this.state]} />
+                            </TableWrapper>
+                        </Content>
+                        <SubContent>
+                            <TwoColumns className="mr-4">
+                                <h3 className="title mb-4 text-center">Albums</h3>
+                                <Table columns={albumColumns} data={albums} />
+                            </TwoColumns>
+                            <TwoColumns>
+                                <h3 className="title mb-4">Current Members</h3>
+                                <p className="text-muted"><em>Will be available in future updates</em></p>
+                            </TwoColumns>
+                        </SubContent>
+                    </>
+                }
             </Main>
         )
     }

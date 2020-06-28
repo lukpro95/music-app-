@@ -14,7 +14,7 @@ class Select extends React.Component {
                     <option value={"DEFAULT"} hidden>Choose an option</option>
                     {
                         this.props.array.map(item =>  (
-                            <option key={item.id} value={item.value}>{item.name}</option>
+                             <option key={item.id} value={item.value}>{item.name}</option>
                         ))
                     }
                 </select>

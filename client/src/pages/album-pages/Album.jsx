@@ -1,7 +1,24 @@
 import React, {Component} from 'react';
 import api from '../../api'
-import {Table, Main, Title} from '../../components'
+import {Table, Main, Title, LoadingComponent} from '../../components'
 import {Link} from 'react-router-dom'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'item py-3 w-100'
+})``
+
+const TableWrapper = styled.div.attrs({
+    className: 'd-flex justify-content-between py-4 px-5 mx-5'
+})``
+
+const SubContent = styled.div.attrs({
+    className: 'd-flex py-4'
+})``
+
+const TwoColumns = styled.div.attrs({
+    className: 'p-5 item col-6'
+})``
 
 class Delete extends Component {
 
@@ -37,42 +54,67 @@ class Album extends Component {
         this.state = {
             band_id: '',
             album: [],
-            tracks: []
+            tracks: [],
+            isLoading: true
         }
     }
 
-    componentDidMount = async () => {
-        await api.getTracksByAlbumId(this.props.match.params.id)
-        .then((response) => {
-            this.setState({
-                band_id: response.data[0].band_id,
-                album: response.data[0],
-                tracks: response.data[0].tracks
+    getTracks = async () => {
+        return new Promise(async (resolve, reject) => {
+            await api.getTracksByAlbumId(this.props.match.params.id)
+            .then((response) => {
+                this.setState({
+                    band_id: response.data[0].band_id,
+                    album: response.data[0],
+                    tracks: response.data[0].tracks
+                })
+                resolve()
             })
+            .catch(() => reject())
+        })
+    }
+
+    componentDidMount = async () => {
+        await this.getTracks()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
+        })
+        .catch(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
         })
     }
 
     render() {
+        const {isLoading} = this.state
         return (
             <Main>
-                <div className="w-100">
-                    <div className="item py-3">
+                {isLoading &&
+                    <LoadingComponent text={"Loading page..."}/>
+                }
+                {!isLoading &&
+                <>
+                    <Content>
                         <Title title={"Album Details"} />
-                        <div className="d-flex justify-content-between py-4 px-5 mx-5">
+                        <TableWrapper>
                             <Table columns={albumColumns} data={[this.state.album]} />
-                        </div>
-                    </div>
-                    <div className="d-flex py-4">
-                        <div className="p-5 item mr-4 col-6">
+                        </TableWrapper>
+                    </Content>
+                    <SubContent>
+                        <TwoColumns className="mr-4">
                             <h3 className="title mb-4 text-center">Albums</h3>
                             <Table columns={trackColumns} data={this.state.tracks} />
-                        </div>
-                        <div className="p-5 item col-6">
+                        </TwoColumns>
+                        <TwoColumns>
                             <h3 className="title mb-4">Album Cover</h3>
                             <p className="text-muted"><em>Will be available in future updates</em></p>
-                        </div>
-                    </div>
-                </div>
+                        </TwoColumns>
+                    </SubContent>
+                </>
+                }
             </Main>
         )
     }
@@ -97,7 +139,6 @@ const albumColumns = [
         Header: "Band Name",
         accessor: "band_name",
         Cell: function(props) {
-            console.log(props.row.original)
             return <Link to={`/band/${props.row.original.band_id}`}>{props.row.original.band_name}</Link>
         }
     },

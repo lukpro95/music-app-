@@ -20,7 +20,7 @@ th {
 
 th, td {
     /* cellpadding */
-    padding: 0.25rem 0.45rem;
+    padding: 0.65rem 0.25rem;
     border-bottom: 1px solid rgb(255, 255, 255, 15%);
     text-align: center;
     overflow:hidden;
@@ -34,8 +34,8 @@ th:hover, td:hover {
     word-wrap: break-word;
 }
 
-thead tr {
-    text-align: center;
+.notfirst {
+    text-align: left;
 }
 
 table input {

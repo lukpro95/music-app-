@@ -17,7 +17,7 @@ const Table = ({ category, columns, data, remove }) => {
         data,
         remove
     });
-
+    
     let searchEngine = (e) => {
         // Will change the code for proper one some time later
         // Bad practice code example for React...

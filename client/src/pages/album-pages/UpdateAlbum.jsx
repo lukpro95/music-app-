@@ -1,6 +1,11 @@
-import React, {Component, createRef} from 'react';
+import React, {Component} from 'react';
 import api from '../../api'
-import {InfoPop, Input, Select, CreateBand, Main, Title} from '../../components'
+import {InfoPop, Input, Select, CreateBand, Main, Title, LoadingComponent, Form} from '../../components'
+import styled from 'styled-components'
+
+const Content = styled.div.attrs({
+    className: 'item py-3 w-100'
+})``
 
 class UpdateAlbum extends Component {
 
@@ -15,16 +20,16 @@ class UpdateAlbum extends Component {
             country_origin: '',
             year_formed: '',
 
-            bands: [],
+            bands: [{id: 0, name: "Create New Band..", value: 0}],
 
             errors: [],
             success: [],
 
-            isLoading: false,
+            isLoading: true,
+            isProcessing: false,
             submitting: false,
         }
-        
-        this.bandRef = createRef()
+    
     }
 
     validate = () => {
@@ -80,8 +85,7 @@ class UpdateAlbum extends Component {
         const {band_id, album_name, year_released, band_name, year_formed, country_origin} = this.state
         api.updateAlbum(this.props.match.params.id, {band_id, album_name, year_released, band_name, year_formed, country_origin})
         .then((res) => {
-            this.reset()
-            window.location.href = `/album/${this.props.match.params.id}`
+            this.returnToAlbum()
         })
         .catch((err) => {
             this.setState({errors: [...this.state.errors, "There was a problem with our Database. Try again later."]})
@@ -89,29 +93,14 @@ class UpdateAlbum extends Component {
         })
     }
 
-    reset = () => {
-        this.setState({
-            band_name: '',
-            genre: '',
-            country_origin: '',
-            year_formed: '',
-            record_label: '',
-            active_status: '',
-
-            bands: [],
-
-            submitting: false
-        })
-    }
-
     switchPop = () => {
-        this.state.isLoading ? this.setState({isLoading: false}) : this.setState({isLoading: true})
+        this.state.isProcessing ? this.setState({isProcessing: false}) : this.setState({isProcessing: true})
     }
 
     onSubmit = async (e) => {
         e.preventDefault()
 
-        this.setState({submitting: true, isLoading: true})
+        this.setState({submitting: true, isProcessing: true})
 
         await this.validate()
         .then(async () => {
@@ -132,7 +121,7 @@ class UpdateAlbum extends Component {
         window.location.href = `/album/${this.props.match.params.id}`
     }
 
-    componentDidMount = async () => {
+    loadAlbum = async () => {
         await api.getAlbumById(this.props.match.params.id)
         .then(response => {
             const {band_id, album_name, year_released} = response.data[0]
@@ -142,63 +131,92 @@ class UpdateAlbum extends Component {
                 year_released: year_released
             })
         })
+    }
 
+    loadBands = async () => {
         await api.getBands()
         .then(response => {
-            this.setState({bands: response.data})
+            this.setState({
+                bands: this.state.bands.concat(
+                    response.data.map(band => {
+                        return {
+                            id: band._id, 
+                            name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, 
+                            value: band._id
+                        }
+                    })
+                )
+            })
+        })
+    }
+
+    initLoad = () => {
+        return new Promise(async(resolve) => {
+            await this.loadAlbum()
+            await this.loadBands()
+            resolve()
+        })
+    }
+
+    componentDidMount = async () => {
+        await this.initLoad()
+        .then(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
+        })
+        .catch(() => {
+            setTimeout(() => {
+                this.setState({isLoading: false})
+            }, 150)
         })
     }
     
     render() {
-
-        const array1 = [{id: 0, name: "Create New Band..", value: 0}]
-
-        this.state.bands.map(band => {
-            return array1.push({id: band._id, name: `${band.band_name} | ${band.country_origin} | ${band.year_formed}`, value: band._id})
-        })
-        
+        const {isLoading, isProcessing, creatingBand, errors, success, submitting} = this.state
+        const {bands, band_name, band_id, country_origin, album_name, year_released, year_formed} = this.state
         return (
                 <Main>
-                    <div className="w-100">
-                        <div className="item py-3">
+                    {isLoading &&
+                        <LoadingComponent text={"Loading page..."} />
+                    }
+                    {!isLoading &&
+                        <Content>
                             <Title title={"Update Album"} />
-                            <div className="d-flex justify-content-between py-4 px-5 mx-5">
+                            <Form onSubmit={this.onSubmit}>
+                                <Select 
+                                        title={"Band"} mandatory name={"band_id"} type={"text"} array={bands}
+                                        value={band_id} onChange={this.onChange} />
 
-                                <form onSubmit={this.onSubmit} className="w-100" action="">
+                                <CreateBand 
+                                        creatingBand={creatingBand} onChange={this.onChange} bandName={band_name} 
+                                        countryOrigin={country_origin} yearFormed={year_formed} />
+                                
+                                <Input  title={"Album"} mandatory name={"album_name"} type={"text"} 
+                                            value={album_name} onChange={this.onChange} focus />
 
-                                    <Select 
-                                            parentRef={this.bandRef} title={"Band"} mandatory name={"band_id"} type={"text"} array={array1}
-                                            value={this.state.band_id} onChange={this.onChange} />
+                                <Input  title={"Year Released"} name={"year_released"} type={"text"} 
+                                            value={year_released} onChange={this.onChange} />
 
-                                    <CreateBand 
-                                            creatingBand={this.state.creatingBand} onChange={this.onChange} bandName={this.state.band_name} 
-                                            countryOrigin={this.state.country_origin} yearFormed={this.state.year_formed} />
-                                    
-                                    <Input  title={"Album"} mandatory name={"album_name"} type={"text"} 
-                                                value={this.state.album_name} onChange={this.onChange} focus />
+                                <div className="d-flex mx-2 my-4 w-50 mx-auto">
+                                    <button type="submit" className="w-100">Update</button>
+                                </div>
 
-                                    <Input  title={"Year Released"} name={"year_released"} type={"text"} 
-                                                value={this.state.year_released} onChange={this.onChange} />
-
-                                    <div className="d-flex mx-2 my-4 w-50 mx-auto">
-                                        <button type="submit" className="w-100">Update</button>
-                                    </div>
-
-                                    <div className="d-flex mx-2 my-4 w-50 mx-auto">
-                                        <button type="reset" onClick={this.returnToAlbum} className="w-100 cancel">Cancel</button>
-                                    </div>
-
-                                </form>
-
-                            </div>
-                        </div>
-                    </div>
+                                <div className="d-flex mx-2 my-4 w-50 mx-auto">
+                                    <button type="reset" onClick={this.returnToAlbum} className="w-100 cancel">Cancel</button>
+                                </div>
+                            </Form>
+                        </Content>
+                    }
                 
-                    {this.state.isLoading   ? <InfoPop 
-                                                errors={this.state.errors} success={this.state.success} 
-                                                submitting={this.state.submitting} switch={this.switchPop}/> 
-                                            : 
-                                            <span></span>}
+                    {isProcessing ?
+                        <InfoPop 
+                            errors={errors} success={success} 
+                            submitting={submitting} switch={this.switchPop}
+                        /> 
+                        : 
+                        <></>
+                    }
                 </Main>
         )
     }
