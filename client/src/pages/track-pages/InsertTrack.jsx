@@ -146,13 +146,13 @@ class InsertTrack extends Component {
             const {band_id, album_id} = this.state
             
             if(band_id === "0") {
-                this.createBand()
+                await this.createBand()
             }
             if(album_id === "0") {
-                this.createAlbum()
+                await this.createAlbum()
             }
 
-            if(!this.state.errors) {
+            if(this.state.errors.length === 0) {
                 await this.createTrack()
             }
         })
