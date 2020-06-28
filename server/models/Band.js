@@ -15,7 +15,32 @@ let Band = function (data) {
 }
 
 Band.prototype.validate = function() {
-    if(!this.data.active_status) {this.data.active_status = 1}
+    return new Promise(async(resolve, reject) => {
+        if(!this.data.active_status) {this.data.active_status = 1}
+        await this.doesExist()
+        .then(() => {
+            resolve()
+        })
+        .catch(() => {
+            reject()
+        })
+    })
+
+}
+
+Band.prototype.doesExist = function() {
+    return new Promise(async (resolve, reject) => {
+        let band = await bandsCollection.findOne({
+            band_name: this.data.band_name,
+            country_origin: this.data.country_origin,
+            year_formed: this.data.year_formed
+            })
+        if(band) {
+            reject()
+        } else {
+            resolve()
+        }
+    })
 }
 
 Band.getBands = function() {
@@ -47,13 +72,19 @@ Band.getBandById = function(id) {
 
 Band.prototype.insertBand = function() {
     return new Promise(async (resolve, reject) => {
-        this.validate()
-        let band = await bandsCollection.insertOne(this.data)
-        if(band) {
-            resolve("Successfully inserted a new Band.")
-        } else {
-            reject("Encountered an error. Try again later.")
-        }
+        await this.validate()
+        .then(async () => {
+            let band = await bandsCollection.insertOne(this.data)
+            if(band) {
+                resolve("Successfully inserted a new Band.")
+            } else {
+                reject("Encountered an error. Try again later.")
+            }
+        })
+        .catch(() => {
+            reject("This band already exists in the database.")
+        })
+
     })
 }
 

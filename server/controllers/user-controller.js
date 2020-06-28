@@ -3,7 +3,13 @@ const jwt = require('jsonwebtoken')
 
 exports.registerUser = (req, res) => {
     let user = new User(req.body)
-    promiseHandler(user.registerUser(), req, res)
+    user.registerUser()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.logIn = (req, res) => {
@@ -52,21 +58,21 @@ exports.logOut = (req, res) => {
 }
 
 exports.doesUsernameExist = (req, res) => {
-    promiseHandler(User.doesUsernameExist(req.body.user_name), req, res)
+    User.doesUsernameExist(req.body.user_name)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.doesEmailExist = (req, res) => {
-    promiseHandler(User.doesEmailExist(req.body.user_email), req, res)
-}
-
-promiseHandler = function(func, req, res) {
-    return (
-        func
-        .then((response) => {
-            res.send(response)
-        })
-        .catch((err) => {
-            res.send(err)
-        })
-    )
+    User.doesEmailExist(req.body.user_email)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }

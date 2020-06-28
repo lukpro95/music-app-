@@ -1,39 +1,63 @@
 const Album = require('../models/Album.js')
 
 exports.getAlbums = (req, res) => {
-    promiseHandler(Album.getAlbums(), req, res)
+    Album.getAlbums()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.getAlbumById = (req, res) => {
-    promiseHandler(Album.getAlbumById(req.params.id), req, res)
+    Album.getAlbumById(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.getAlbumsByBandId = (req, res) => {
-    promiseHandler(Album.getAlbumsByBandId(req.params.band_id), req, res)
+    Album.getAlbumsByBandId(req.params.band_id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.insertAlbum = (req, res) => {
     let album = new Album(req.body)
-    promiseHandler(album.insertAlbum(), req, res)
+    album.insertAlbum()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.updateAlbum = (req, res) => {
     let album = new Album(req.body)
-    promiseHandler(album.updateAlbum(req.params.id), req, res)
+    album.updateAlbum(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.deleteAlbum = (req, res) => {
-    promiseHandler(Album.deleteAlbum(req.params.id), req, res)
-}
-
-promiseHandler = function(func, req, res) {
-    return (
-        func
-        .then((response) => {
-            res.send(response)
-        })
-        .catch((err) => {
-            res.send(err)
-        })
-    )
+    Album.deleteAlbum(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }

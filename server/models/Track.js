@@ -20,6 +20,21 @@ let Track = function (data) {
     }
 }
 
+Track.prototype.doesExist = function() {
+    return new Promise(async (resolve, reject) => {
+        let track = await tracksCollection.findOne({
+            band_id: new ObjectID(this.data.band_id),
+            album_id: new ObjectID(this.data.album_id),
+            title: this.data.title
+            })
+        if(track) {
+            reject()
+        } else {
+            resolve()
+        }
+    })
+}
+
 Track.getTrackById = function(id) {
     return new Promise(async (resolve, reject) => {
         let track = await tracksCollection.aggregate([
@@ -70,6 +85,34 @@ Track.getTracks = function() {
             {$sort: {band_name: 1, year_released: 1}}
         ]).toArray()
         resolve(tracks)
+    })
+}
+
+Track.getLastAddedTracks = function() {
+    return new Promise(async (resolve, reject) => {
+        let tracks = await tracksCollection.aggregate([
+            {$lookup: {
+                from: "bands", localField: "band_id", foreignField: "_id", as: "bandDoc"
+            }},
+            {$unwind: {
+                path: "$bandDoc",
+                preserveNullAndEmptyArrays: true
+            }},
+            {$project: {
+                _id: 1,
+                band_name: "$bandDoc.band_name",
+                band_id: "$bandDoc._id",
+                title: 1,
+            }},
+            {$sort: {_id: -1}},
+            {$limit: 10}
+        ]).toArray()
+        if(tracks) {
+            resolve(tracks)
+        }
+        else {
+            reject(false)
+        }
     })
 }
 
@@ -156,9 +199,13 @@ Track.prototype.insertTrack = function() {
             .catch(err => reject(err))
         }
 
-        await this.actuallyInsertTrack()
-        .then(res => resolve(res))
-        .catch(err => reject(err))
+        await this.doesExist()
+        .then(async () => {
+            await this.actuallyInsertTrack()
+            .then(res => resolve(res))
+            .catch(err => reject(err))
+        })
+        .catch(() => reject("This track already exists in the database."))
     })
 }
 

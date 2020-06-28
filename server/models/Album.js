@@ -74,6 +74,20 @@ Album.prototype.getBandId = function() {
     })
 }
 
+Album.prototype.doesExist = function() {
+    return new Promise(async (resolve, reject) => {
+        let album = await albumsCollection.findOne({
+            band_id: new ObjectID(this.data.band_id),
+            album_name: this.data.album_name
+        })
+        if(album) {
+            reject()
+        } else {
+            resolve()
+        }
+    })
+}
+
 Album.prototype.insertAlbum = function() {
     return new Promise(async (resolve, reject) => {
         if(this.data.band_id === "0") {
@@ -82,9 +96,15 @@ Album.prototype.insertAlbum = function() {
             .catch(err => reject(err));
         }
 
-        await this.actuallyInsertAlbum()
-        .then(res => resolve(res))
-        .catch(err => reject(err))
+        await this.doesExist()
+        .then(async () => {
+            await this.actuallyInsertAlbum()
+            .then(res => resolve(res))
+            .catch(err => reject(err))
+        })
+        .catch(() => {
+            reject("This album already exists in the database.")
+        })
     })
 }
 

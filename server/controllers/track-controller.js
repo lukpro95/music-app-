@@ -1,39 +1,73 @@
 const Track = require('../models/Track.js')
 
 exports.getTracks = (req, res) => {
-    promiseHandler(Track.getTracks(), req, res)
+    Track.getTracks()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
+}
+
+exports.getLastAddedTracks = (req, res) => {
+    Track.getLastAddedTracks()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.insertTrack = (req, res) => {
     let track = new Track(req.body)
-    promiseHandler(track.insertTrack(), req, res)
+    track.insertTrack()
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.getTrackById = (req, res) => {
-    promiseHandler(Track.getTrackById(req.params.id), req, res)
+    Track.getTrackById(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.getTracksByAlbumId = (req, res) => {
-    promiseHandler(Track.getTracksByAlbumId(req.params.id), req, res)
+    Track.getTracksByAlbumId(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.updateTrack = (req, res) => {
     let track = new Track(req.body)
-    promiseHandler(track.updateTrack(req.params.id), req, res)
+    track.updateTrack(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }
 
 exports.deleteTrack = (req, res) => {
-    promiseHandler(Track.deleteTrack(req.params.id), req, res)
-}
-
-promiseHandler = function(func, req, res) {
-    return (
-        func
-        .then((response) => {
-            res.send(response)
-        })
-        .catch((err) => {
-            res.send(err)
-        })
-    )
+    Track.deleteTrack(req.params.id)
+    .then((response) => {
+        res.send(response)
+    })
+    .catch((err) => {
+        res.send(err)
+    })
 }

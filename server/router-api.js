@@ -10,6 +10,8 @@ const cors = require('cors')
 
 router.use(cors())
 
+router.get('/home', (req,res) => res.send("Welcome"))
+
 //User related
 router.post('/login', userController.logIn)
 router.post('/loggedIn', userController.loggedIn)
@@ -41,6 +43,7 @@ router.get('/album/:id/tracks', trackController.getTracksByAlbumId)
 router.post('/track', trackController.insertTrack)
 router.put('/track/:id', trackController.updateTrack)
 router.delete('/track/:id', trackController.deleteTrack)
+router.get('/tracks/last-added', trackController.getLastAddedTracks)
 
 //Playlist related
 router.get('/playlist/display/:crypted', userController.isLoggedIn, playlistController.display)
